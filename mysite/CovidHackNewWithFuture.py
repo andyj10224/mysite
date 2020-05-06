@@ -30,7 +30,7 @@ states_db = {
     'Louisiana' : 'LA',
     'Maine' : 'ME',
     'Maryland' : 'MD',
-    'Massachussetts' : 'MA',
+    'Massachusetts' : 'MA',
     'Michigan' : 'MI',
     'Minnesota' : 'MN',
     'Mississippi' : 'MS',
@@ -106,7 +106,7 @@ def covid_predict(folder, state):
             dayNumber = datetime.datetime.strptime(date, '%Y-%m-%d').timetuple().tm_yday
             newDict[str(dayNumber)] = {'State': state, 'MeanDailyDeaths': pieces[deaths_mean], 'LowerBound': pieces[deaths_lower], 'UpperBound': pieces[deaths_upper]}
 
-    print(json.dumps(newDict, indent = 4))
+    #print(json.dumps(newDict, indent = 4))
     #return ("Total number of entries: {}".format(stateCount))
     return newDict
 
@@ -137,7 +137,7 @@ def covid_actual(st):
                 else:
                     newDict[str(dayNumber)] += int(data_pieces[j]) - int(data_pieces[j-1])
 
-    print(json.dumps(newDict, indent = 4))
+    #print(json.dumps(newDict, indent = 4))
     return newDict
 
 
@@ -161,7 +161,7 @@ def covid_writer(folder, state):
 
     compareFile.close()
 
-def graph_maker(folder, state):
+def graph_maker_day(folder, state):
     compareFile = open(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.csv', 'r')
 
     header = compareFile.readline()
@@ -174,7 +174,7 @@ def graph_maker(folder, state):
 
     # data = np.array(data, dtype=float)
 
-    print(data)
+    #print(data)
 
     dayOfYear = []
     dayOfYearNoFuture = []
@@ -196,25 +196,324 @@ def graph_maker(folder, state):
             actualDeathsNoNA.append(float(actualDeaths[i]))
             dayOfYearNoFuture.append(dayOfYear[i])
 
-    print(actualDeathsNoNA)
+    #print(actualDeathsNoNA)
+
+    matplotlib.use("Agg")
 
     plt.plot(dayOfYearNoFuture, actualDeathsNoNA, label='actual deaths')
-    plt.plot(dayOfYear, estimatedMean, label='estimated mean')
+    plt.plot(dayOfYear, estimatedMean, '--', label='estimated mean')
     plt.plot(dayOfYear, estimatedLow, '--', label='estimated low')
     plt.plot(dayOfYear, estimatedHigh, '--', label='estimated high')
     plt.legend()
 
-    plt.xlabel("Days Into The Year")
-    plt.ylabel("Deaths from COVID-19")
+    plt.xlabel("Day Of Year")
+    plt.ylabel("Daily Deaths from COVID-19")
 
-    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.png')
+    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_daily.png')
 
     plt.close('all')
 
-def main(argv=sys.argv):
-    args = argv
-    covid_writer(args[1], args[2])
-    graph_maker(args[1], args[2])
+def graph_maker_week(folder, state):
+    compareFile = open(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.csv', 'r')
 
-if __name__ == '__main__':
-    main()
+    header = compareFile.readline()
+    data = compareFile.readlines()
+
+    compareFile.close()
+
+    for i in range(len(data)):
+        data[i] = data[i].strip("\n").split(",")
+
+    dayOfYear = []
+    dayOfYearNoFuture = []
+    actualDeaths = []
+    actualDeathsNoNA = []
+    estimatedLow = []
+    estimatedMean = []
+    estimatedHigh = []
+
+    weekOfYear = []
+    weekOfYearNoFuture = []
+    actualWeeklyDeaths = []
+    estimatedWeeklyDeathsLow = []
+    estimatedWeeklyDeathsMean = []
+    estimatedWeeklyDeathsHigh = []
+
+    #Stores data into lists
+    for x in data:
+        dayOfYear.append(int(x[0]))
+        actualDeaths.append(x[1])
+        estimatedLow.append(float(x[2]))
+        estimatedMean.append(float(x[3]))
+        estimatedHigh.append(float(x[4]))
+
+    for i in range(len(actualDeaths)):
+        if 'N/A' not in actualDeaths[i]:
+            actualDeathsNoNA.append(int(actualDeaths[i]))
+            dayOfYearNoFuture.append(int(dayOfYear[i]))
+
+    for i in range(len(dayOfYear)):
+        if dayOfYear[i] % 7 == 0:
+            weekOfYear.append(dayOfYear[i]//7)
+        elif i == len(dayOfYear) - 1:
+            weekOfYear.append(dayOfYear[i]//7 + 1)
+
+    for i in range(len(dayOfYearNoFuture)):
+        if dayOfYearNoFuture[i] % 7 == 0:
+            weekOfYearNoFuture.append(dayOfYearNoFuture[i]//7)
+        elif i == len(dayOfYearNoFuture) - 1:
+            weekOfYearNoFuture.append(dayOfYearNoFuture[i]//7 + 1)
+
+
+    lowWeekTotal = 0
+    meanWeekTotal = 0
+    highWeekTotal = 0
+    for i in range(len(dayOfYear)):
+        lowWeekTotal += estimatedLow[i]
+        meanWeekTotal += estimatedMean[i]
+        highWeekTotal += estimatedHigh[i]
+        if dayOfYear[i] % 7 == 0 or i == len(dayOfYear) - 1:
+            estimatedWeeklyDeathsLow.append(lowWeekTotal)
+            estimatedWeeklyDeathsMean.append(meanWeekTotal)
+            estimatedWeeklyDeathsHigh.append(highWeekTotal)
+            lowWeekTotal = 0
+            meanWeekTotal = 0
+            highWeekTotal = 0
+
+    weeklyActualTotal = 0
+    for i in range(len(dayOfYearNoFuture)):
+        weeklyActualTotal += actualDeathsNoNA[i]
+        if dayOfYearNoFuture[i] % 7 == 0 or i == len(dayOfYearNoFuture) - 1:
+            actualWeeklyDeaths.append(weeklyActualTotal)
+            weeklyActualTotal = 0
+
+    matplotlib.use("Agg")
+
+    plt.plot(weekOfYearNoFuture, actualWeeklyDeaths, label='actual deaths')
+    plt.plot(weekOfYear, estimatedWeeklyDeathsMean, '--', label='estimated mean')
+    plt.plot(weekOfYear, estimatedWeeklyDeathsLow, '--', label='estimated low')
+    plt.plot(weekOfYear, estimatedWeeklyDeathsHigh, '--', label='estimated high')
+    plt.legend()
+
+    plt.xlabel("Week Of Year")
+    plt.ylabel("Weekly Deaths from COVID-19")
+
+    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_weekly.png')
+
+    plt.close('all')
+
+def graph_maker_five_day(folder, state):
+    compareFile = open(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.csv', 'r')
+
+    header = compareFile.readline()
+    data = compareFile.readlines()
+
+    compareFile.close()
+
+    for i in range(len(data)):
+        data[i] = data[i].strip("\n").split(",")
+
+    # data = np.array(data, dtype=float)
+
+    #print(data)
+
+    dayOfYear = []
+    dayOfYearNoFuture = []
+    actualDeaths = []
+    actualDeathsNoNA = []
+    estimatedLow = []
+    estimatedMean = []
+    estimatedHigh = []
+
+    for x in data:
+        dayOfYear.append(float(x[0]))
+        actualDeaths.append(x[1])
+        estimatedLow.append(float(x[2]))
+        estimatedMean.append(float(x[3]))
+        estimatedHigh.append(float(x[4]))
+
+    for i in range(len(actualDeaths)):
+        if 'N/A' not in actualDeaths[i]:
+            actualDeathsNoNA.append(float(actualDeaths[i]))
+            dayOfYearNoFuture.append(dayOfYear[i])
+
+    #print(actualDeathsNoNA)
+
+    estimatedLowAvg = []
+    estimatedMeanAvg = []
+    estimatedHighAvg = []
+
+    for i in range(len(dayOfYear)):
+        count = i - 2
+        tempLow = 0
+        tempMean = 0
+        tempHigh = 0
+        for j in range(count, count + 5):
+            if j < 0:
+                tempLow += estimatedLow[0]
+                tempMean += estimatedMean[0]
+                tempHigh += estimatedHigh[0]
+
+            elif j >= len(dayOfYear):
+                tempLow += estimatedLow[-1]
+                tempMean += estimatedMean[-1]
+                tempHigh += estimatedHigh[-1]
+
+            else:
+                tempLow += estimatedLow[j]
+                tempMean += estimatedMean[j]
+                tempHigh += estimatedHigh[j]
+
+        tempLow /= 5
+        tempMean /= 5
+        tempHigh /= 5
+
+        estimatedLowAvg.append(tempLow)
+        estimatedMeanAvg.append(tempMean)
+        estimatedHighAvg.append(tempHigh)
+
+    actualAvg = []
+
+    for i in range(len(dayOfYearNoFuture)):
+        count = i - 2
+        tempActual = 0
+        for j in range(count, count + 5):
+            if j < 0:
+                tempActual += actualDeathsNoNA[0]
+
+            elif j >= len(dayOfYearNoFuture):
+                tempActual += actualDeathsNoNA[-1]
+
+            else:
+                tempActual += actualDeathsNoNA[j]
+
+        tempActual /= 5
+
+        actualAvg.append(tempActual)
+
+    matplotlib.use("Agg")
+
+    plt.plot(dayOfYearNoFuture, actualAvg, label='actual deaths')
+    plt.plot(dayOfYear, estimatedMeanAvg, '--', label='estimated mean')
+    plt.plot(dayOfYear, estimatedLowAvg, '--', label='estimated low')
+    plt.plot(dayOfYear, estimatedHighAvg, '--', label='estimated high')
+    plt.legend()
+
+    plt.xlabel("Day Of Year")
+    plt.ylabel("Daily Deaths from COVID-19 (5 Day Average)")
+
+    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_5_day_average.png')
+
+    plt.close('all')
+
+def graph_maker_seven_day(folder, state):
+    compareFile = open(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.csv', 'r')
+
+    header = compareFile.readline()
+    data = compareFile.readlines()
+
+    compareFile.close()
+
+    for i in range(len(data)):
+        data[i] = data[i].strip("\n").split(",")
+
+    # data = np.array(data, dtype=float)
+
+    #print(data)
+
+    dayOfYear = []
+    dayOfYearNoFuture = []
+    actualDeaths = []
+    actualDeathsNoNA = []
+    estimatedLow = []
+    estimatedMean = []
+    estimatedHigh = []
+
+    for x in data:
+        dayOfYear.append(float(x[0]))
+        actualDeaths.append(x[1])
+        estimatedLow.append(float(x[2]))
+        estimatedMean.append(float(x[3]))
+        estimatedHigh.append(float(x[4]))
+
+    for i in range(len(actualDeaths)):
+        if 'N/A' not in actualDeaths[i]:
+            actualDeathsNoNA.append(float(actualDeaths[i]))
+            dayOfYearNoFuture.append(dayOfYear[i])
+
+    #print(actualDeathsNoNA)
+
+    estimatedLowAvg = []
+    estimatedMeanAvg = []
+    estimatedHighAvg = []
+
+    for i in range(len(dayOfYear)):
+        count = i - 3
+        tempLow = 0
+        tempMean = 0
+        tempHigh = 0
+        for j in range(count, count + 7):
+            if j < 0:
+                tempLow += estimatedLow[0]
+                tempMean += estimatedMean[0]
+                tempHigh += estimatedHigh[0]
+
+            elif j >= len(dayOfYear):
+                tempLow += estimatedLow[-1]
+                tempMean += estimatedMean[-1]
+                tempHigh += estimatedHigh[-1]
+
+            else:
+                tempLow += estimatedLow[j]
+                tempMean += estimatedMean[j]
+                tempHigh += estimatedHigh[j]
+
+        tempLow /= 7
+        tempMean /= 7
+        tempHigh /= 7
+
+        estimatedLowAvg.append(tempLow)
+        estimatedMeanAvg.append(tempMean)
+        estimatedHighAvg.append(tempHigh)
+
+    actualAvg = []
+
+    for i in range(len(dayOfYearNoFuture)):
+        count = i - 3
+        tempActual = 0
+        for j in range(count, count + 7):
+            if j < 0:
+                tempActual += actualDeathsNoNA[0]
+
+            elif j >= len(dayOfYearNoFuture):
+                tempActual += actualDeathsNoNA[-1]
+
+            else:
+                tempActual += actualDeathsNoNA[j]
+
+        tempActual /= 7
+
+        actualAvg.append(tempActual)
+
+    matplotlib.use("Agg")
+
+    plt.plot(dayOfYearNoFuture, actualAvg, label='actual deaths')
+    plt.plot(dayOfYear, estimatedMeanAvg, '--', label='estimated mean')
+    plt.plot(dayOfYear, estimatedLowAvg, '--', label='estimated low')
+    plt.plot(dayOfYear, estimatedHighAvg, '--', label='estimated high')
+    plt.legend()
+
+    plt.xlabel("Day Of Year")
+    plt.ylabel("Daily Deaths from COVID-19 (7 Day Average)")
+
+    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_7_day_average.png')
+
+    plt.close('all')
+
+#def main(argv=sys.argv):
+#    args = argv
+#    covid_writer(args[1], args[2])
+#    graph_maker(args[1], args[2])
+
+#if __name__ == '__main__':
+#    main()
