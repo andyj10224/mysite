@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import sys
 
 #Source: https://www.50states.com/abbreviations.htm
@@ -200,13 +201,25 @@ def graph_maker_day(folder, state):
 
     matplotlib.use("Agg")
 
+    for i in range(len(dayOfYear)):
+        dayOfYear[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYear[i] - 1)
+        dayOfYear[i] = dayOfYear[i].date()
+
+    for i in range(len(dayOfYearNoFuture)):
+        dayOfYearNoFuture[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYearNoFuture[i] - 1)
+        dayOfYearNoFuture[i] = dayOfYearNoFuture[i].date()
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
+    #plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+
     plt.plot(dayOfYearNoFuture, actualDeathsNoNA, label='actual deaths')
     plt.plot(dayOfYear, estimatedMean, '--', label='estimated mean')
     plt.plot(dayOfYear, estimatedLow, '--', label='estimated low')
     plt.plot(dayOfYear, estimatedHigh, '--', label='estimated high')
     plt.legend()
 
-    plt.xlabel("Day Of Year")
+    plt.xlabel("Date")
     plt.ylabel("Daily Deaths from COVID-19")
 
     plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_daily.png')
@@ -264,6 +277,11 @@ def graph_maker_week(folder, state):
         elif i == len(dayOfYearNoFuture) - 1:
             weekOfYearNoFuture.append(dayOfYearNoFuture[i]//7 + 1)
 
+    for i in range(len(weekOfYear)):
+        weekOfYear[i] = 7*(weekOfYear[i]) - 6
+
+    for i in range(len(weekOfYearNoFuture)):
+        weekOfYearNoFuture[i] = 7*(weekOfYearNoFuture[i]) - 6
 
     lowWeekTotal = 0
     meanWeekTotal = 0
@@ -289,13 +307,25 @@ def graph_maker_week(folder, state):
 
     matplotlib.use("Agg")
 
+    for i in range(len(weekOfYear)):
+        weekOfYear[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(weekOfYear[i] - 1)
+        weekOfYear[i] = weekOfYear[i].date()
+
+    for i in range(len(weekOfYearNoFuture)):
+        weekOfYearNoFuture[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(weekOfYearNoFuture[i] - 1)
+        weekOfYearNoFuture[i] = weekOfYearNoFuture[i].date()
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
+    #plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=35))
+
     plt.plot(weekOfYearNoFuture, actualWeeklyDeaths, label='actual deaths')
     plt.plot(weekOfYear, estimatedWeeklyDeathsMean, '--', label='estimated mean')
     plt.plot(weekOfYear, estimatedWeeklyDeathsLow, '--', label='estimated low')
     plt.plot(weekOfYear, estimatedWeeklyDeathsHigh, '--', label='estimated high')
     plt.legend()
 
-    plt.xlabel("Week Of Year")
+    plt.xlabel("Date")
     plt.ylabel("Weekly Deaths from COVID-19")
 
     plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_weekly.png')
@@ -393,13 +423,23 @@ def graph_maker_five_day(folder, state):
 
     matplotlib.use("Agg")
 
+    for i in range(len(dayOfYear)):
+        dayOfYear[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYear[i] - 1)
+        dayOfYear[i] = dayOfYear[i].date()
+
+    for i in range(len(dayOfYearNoFuture)):
+        dayOfYearNoFuture[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYearNoFuture[i] - 1)
+        dayOfYearNoFuture[i] = dayOfYearNoFuture[i].date()
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
     plt.plot(dayOfYearNoFuture, actualAvg, label='actual deaths')
     plt.plot(dayOfYear, estimatedMeanAvg, '--', label='estimated mean')
     plt.plot(dayOfYear, estimatedLowAvg, '--', label='estimated low')
     plt.plot(dayOfYear, estimatedHighAvg, '--', label='estimated high')
     plt.legend()
 
-    plt.xlabel("Day Of Year")
+    plt.xlabel("Date")
     plt.ylabel("Daily Deaths from COVID-19 (5 Day Average)")
 
     plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_5_day_average.png')
@@ -497,16 +537,102 @@ def graph_maker_seven_day(folder, state):
 
     matplotlib.use("Agg")
 
+    for i in range(len(dayOfYear)):
+        dayOfYear[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYear[i] - 1)
+        dayOfYear[i] = dayOfYear[i].date()
+
+    for i in range(len(dayOfYearNoFuture)):
+        dayOfYearNoFuture[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYearNoFuture[i] - 1)
+        dayOfYearNoFuture[i] = dayOfYearNoFuture[i].date()
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
     plt.plot(dayOfYearNoFuture, actualAvg, label='actual deaths')
     plt.plot(dayOfYear, estimatedMeanAvg, '--', label='estimated mean')
     plt.plot(dayOfYear, estimatedLowAvg, '--', label='estimated low')
     plt.plot(dayOfYear, estimatedHighAvg, '--', label='estimated high')
     plt.legend()
 
-    plt.xlabel("Day Of Year")
+    plt.xlabel("Date")
     plt.ylabel("Daily Deaths from COVID-19 (7 Day Average)")
 
     plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_7_day_average.png')
+
+    plt.close('all')
+
+def graph_maker_day_cumulative(folder, state):
+    compareFile = open(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future.csv', 'r')
+
+    header = compareFile.readline()
+    data = compareFile.readlines()
+
+    compareFile.close()
+
+    for i in range(len(data)):
+        data[i] = data[i].strip("\n").split(",")
+
+    # data = np.array(data, dtype=float)
+
+    #print(data)
+
+    dayOfYear = []
+    dayOfYearNoFuture = []
+    actualDeaths = []
+    actualDeathsNoNA = []
+    estimatedLow = []
+    estimatedMean = []
+    estimatedHigh = []
+
+    for x in data:
+        dayOfYear.append(float(x[0]))
+        actualDeaths.append(x[1])
+        estimatedLow.append(float(x[2]))
+        estimatedMean.append(float(x[3]))
+        estimatedHigh.append(float(x[4]))
+
+    for i in range(len(actualDeaths)):
+        if 'N/A' not in actualDeaths[i]:
+            actualDeathsNoNA.append(float(actualDeaths[i]))
+            dayOfYearNoFuture.append(dayOfYear[i])
+
+    estimatedSumLow = 0
+    estimatedSumMean = 0
+    estimatedSumHigh = 0
+    for i in range(len(dayOfYear)):
+        estimatedSumLow += estimatedLow[i]
+        estimatedSumMean += estimatedMean[i]
+        estimatedSumHigh += estimatedHigh[i]
+        estimatedLow[i] = estimatedSumLow
+        estimatedMean[i] = estimatedSumMean
+        estimatedHigh[i] = estimatedSumHigh
+
+    estimatedSumActual = 0
+    for i in range(len(dayOfYearNoFuture)):
+        estimatedSumActual += actualDeathsNoNA[i]
+        actualDeathsNoNA[i] = estimatedSumActual
+
+    matplotlib.use("Agg")
+
+    for i in range(len(dayOfYear)):
+        dayOfYear[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYear[i] - 1)
+        dayOfYear[i] = dayOfYear[i].date()
+
+    for i in range(len(dayOfYearNoFuture)):
+        dayOfYearNoFuture[i] = datetime.datetime(2020, 1, 1) + datetime.timedelta(dayOfYearNoFuture[i] - 1)
+        dayOfYearNoFuture[i] = dayOfYearNoFuture[i].date()
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
+    plt.plot(dayOfYearNoFuture, actualDeathsNoNA, label='actual deaths')
+    plt.plot(dayOfYear, estimatedMean, '--', label='estimated mean')
+    plt.plot(dayOfYear, estimatedLow, '--', label='estimated low')
+    plt.plot(dayOfYear, estimatedHigh, '--', label='estimated high')
+    plt.legend()
+
+    plt.xlabel("Date")
+    plt.ylabel("Cumulative Daily Deaths from COVID-19")
+
+    plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_daily_cumulative.png')
 
     plt.close('all')
 

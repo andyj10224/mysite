@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request
 import os
 from werkzeug.utils import secure_filename
-from CovidHackNewWithFuture import covid_writer, graph_maker_day, graph_maker_week, graph_maker_five_day, graph_maker_seven_day
+from CovidHackNewWithFuture import covid_writer, graph_maker_day, graph_maker_week, graph_maker_five_day, graph_maker_seven_day, graph_maker_day_cumulative
 from PIL import Image
 import matplotlib
 import matplotlib.pyplot as plt
@@ -56,24 +56,32 @@ def show_graph():
 
     matplotlib.use("Agg")
 
-    if 'Daily' in style:
+    if dirs == 'null' or state == 'null' or style == 'null':
+        return index()
+
+    if style == 'Daily':
         covid_writer(dirs, state)
         graph_maker_day(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_daily.png')
 
-    elif 'Weekly' in style:
+    elif style == 'Weekly':
         covid_writer(dirs, state)
         graph_maker_week(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_weekly.png')
 
-    elif '5 Day Avg' in style:
+    elif style == '5 Day Average (Daily)':
         covid_writer(dirs, state)
         graph_maker_five_day(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_5_day_average.png')
 
-    elif '7 Day Avg' in style:
+    elif style == '7 Day Average (Daily)':
         covid_writer(dirs, state)
         graph_maker_seven_day(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_7_day_average.png')
 
-    return render_template("display_graph.html", graph=filename, text=F'Real {style} Deaths Compared to Predictions for {state} on {dir_to_date[dirs]}')
+    elif style == 'Daily Cumulative':
+        covid_writer(dirs, state)
+        graph_maker_day_cumulative(dirs, state)
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_daily_cumulative.png')
+
+    return render_template("display_graph.html", graph=filename, text=F'Real {style} Deaths Compared to {dir_to_date[dirs]} Predictions for {state}')
