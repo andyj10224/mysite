@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>THWCorona</title>
-        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main16.css') }}" />
+        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main18.css') }}" />
     </head>
     <body>
         <div id="about">
@@ -12,13 +12,11 @@
             <p>THWCorona is a website that allows anybody to compare a state's number of deaths from COVID-19 to historical models.
             To compare a state's actual data to a historical model, select a state, a prediction date, and the format to view the data in.
             The goal of this website is to provide a tool for researchers, policy-makers, and everyday citizens to use when making
-            public and personal decisions about COVID-19. <strong><em>To view a graph, select a date of prediction, a state, and the format you want to
-            view the data in.</em></strong></p>
-        </div>
-        <div id="authors">
-            <h3>By: Andy Jiang, Paula Punmaneeluk, and Owen Hale</h3><br>
+            public and personal decisions about COVID-19. <strong><em>To view a graph, select a date of prediction, a state, the format you want to
+            view the data in, and press the "Submit" button.</em></strong></p>
         </div>
         <div id="selection">
+            <h3><font color="red">Attention: To report a bug, send an email to ajiang48@gatech.edu</font></h3>
             <form id="get_graph" action="/graph" method="POST">
                 <div id="choices">
                     <label for="dirs">Prediction Date:</label>
@@ -93,6 +91,8 @@
                         <option value="West Virginia">West Virginia</option>
                         <option value="Wisconsin">Wisconsin</option>
                         <option value="Wyoming">Wyoming</option>
+                        <option value="District of Columbia">DC</option>
+                        <option value="United States of America">USA (All)</option>
                     </select>
                     <label for="style">Display Type:</label>
                     <select name="style" class="sel">
@@ -111,19 +111,21 @@
             <div id="graph">
                 <h3>{{text}}</h3>
                 <img src="{{graph}}" alt="Display Graph" class="center"/><br>
+                <p><strong><font color="red">{{wkwarn}}</font></strong></p>
                 <a href="http://www.healthdata.org/covid/data-downloads">Prediction data from IHME</a><br>
                 <a href="https://usafacts.org/visualizations/coronavirus-covid-19-spread-map/">Real deaths data from USA Facts</a><br>
             </div>
             <div class="boxed">
                 <h4>NOTES</h4>
                 <h5>1.) The real deaths data ends on May 6</h5>
-                <h5><a href="http://www.healthdata.org/covid/updates">2.) IHME Models before May 4 assume Social Distancing</a></h5>
+                <h5><a href="http://www.healthdata.org/covid/updates">2.) IHME predictions made before May 4 assume Social Distancing and Other Protective Measures</a></h5>
                 <h5>3.) Negative deaths can be accounted for by differences in deaths in "unallocated" counties in each state</h5>
                 <h5>4.) Deviations in deaths that have "already occured" in the predicted model and the actual deaths may be attributed to differences in reporting</h5>
-                <h5>5.) 5 day averages are calculated by taking the average of deaths of 5 consecutive days centered around a given date</h5>
-                <h5>6.) For the five day average, if the day has no data before or after, the day is added 3 times, with the next two days added once</h5>
-                <h5>7.) The rules are analogous for the 7 day averages</h5>
-                <h5>8.) To save the graph, right-click (or ctrl right-click on Mac) and select <em>Save Image As</em> on the graph</h5>
+                <h5>5.) The total USA statistics do not include Puerto Rico, they only include the 50 states and DC.</h5>
+                <h5>6.) 5 day averages are calculated by taking the average of deaths of 5 consecutive days centered around a given date</h5>
+                <h5>7.) For the five day average, if the day has no data before or after, the day is added 3 times, with the next or previous two days each added once</h5>
+                <h5>8.) The rules are analogous for the 7 day averages</h5>
+                <h5>9.) To save the graph, right-click (or ctrl right-click on Mac) and select <em>Save Image As</em> on the graph</h5>
             </div>
             <a href="https://github.com/andyj10224/mysite">Source code on GitHub</a><br>
             <a href="https://techcrunch.com/2020/03/21/google-launches-covid-19-page-and-search-portal-with-safety-tips-official-stats-and-more-us-only-for-now/">Background Image Credits: Rost-9D / Getty Images</a>

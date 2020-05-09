@@ -56,6 +56,8 @@ def show_graph():
 
     matplotlib.use("Agg")
 
+    wkwarn = ""
+
     if dirs == 'null' or state == 'null' or style == 'null':
         return index()
 
@@ -68,6 +70,7 @@ def show_graph():
         covid_writer(dirs, state)
         graph_maker_week(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_weekly.png')
+        wkwarn = "For the weekly deaths, the last data point for actual deaths may appear to be lower because the week has not finished yet"
 
     elif style == '5 Day Average (Daily)':
         covid_writer(dirs, state)
@@ -84,4 +87,4 @@ def show_graph():
         graph_maker_day_cumulative(dirs, state)
         filename = os.path.join(app.config['UPLOAD_FOLDER'], F'{dirs}_{state}_with_future_daily_cumulative.png')
 
-    return render_template("display_graph.html", graph=filename, text=F'Real {style} Deaths Compared to {dir_to_date[dirs]} Predictions for {state}')
+    return render_template("display_graph.html", graph=filename, text=F'Real {style} Deaths Compared to {dir_to_date[dirs]} Predictions for {state}', wkwarn=wkwarn)

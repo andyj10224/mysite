@@ -62,7 +62,7 @@ states_db = {
     'Wisconsin' : 'WI',
     'Wyoming' : 'WY',
     'District of Columbia' : 'DC',
-    'Marshall Islands' : 'MH'
+    'United States of America' : 'USA'
 
 }
 
@@ -106,6 +106,13 @@ def covid_predict(folder, state):
             date = pieces[date_ind].strip('"')
             dayNumber = datetime.datetime.strptime(date, '%Y-%m-%d').timetuple().tm_yday
             newDict[str(dayNumber)] = {'State': state, 'MeanDailyDeaths': pieces[deaths_mean], 'LowerBound': pieces[deaths_lower], 'UpperBound': pieces[deaths_upper]}
+            continue
+        elif state == 'United States of America':
+            if 'US' in pieces[location_name]:
+                stateCount += 1
+                date = pieces[date_ind].strip('"')
+                dayNumber = datetime.datetime.strptime(date, '%Y-%m-%d').timetuple().tm_yday
+                newDict[str(dayNumber)] = {'State': state, 'MeanDailyDeaths': pieces[deaths_mean], 'LowerBound': pieces[deaths_lower], 'UpperBound': pieces[deaths_upper]}
 
     #print(json.dumps(newDict, indent = 4))
     #return ("Total number of entries: {}".format(stateCount))
@@ -131,12 +138,21 @@ def covid_actual(st):
 
         for aline in data:
             data_pieces = aline.strip("\n").split(",")
-            if st in data_pieces[2]:
-                if dayNumber == 22:
-                    newDict[str(dayNumber)] += int(data_pieces[j])
+            if st == 'USA':
+                for key, value in states_db.items():
+                    if value in data_pieces[2]:
+                        if dayNumber == 22:
+                            newDict[str(dayNumber)] += int(data_pieces[j])
 
-                else:
-                    newDict[str(dayNumber)] += int(data_pieces[j]) - int(data_pieces[j-1])
+                        else:
+                            newDict[str(dayNumber)] += int(data_pieces[j]) - int(data_pieces[j-1])
+            else:
+                if st in data_pieces[2]:
+                    if dayNumber == 22:
+                        newDict[str(dayNumber)] += int(data_pieces[j])
+
+                    else:
+                        newDict[str(dayNumber)] += int(data_pieces[j]) - int(data_pieces[j-1])
 
     #print(json.dumps(newDict, indent = 4))
     return newDict
@@ -632,6 +648,7 @@ def graph_maker_day_cumulative(folder, state):
     plt.xlabel("Date")
     plt.ylabel("Cumulative Daily Deaths from COVID-19")
 
+    plt.tight_layout()
     plt.savefig(F'/home/ajiang10224/mysite/static/graphs/{folder}_{state}_with_future_daily_cumulative.png')
 
     plt.close('all')
